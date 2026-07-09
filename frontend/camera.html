@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Camera</title>
+    <link rel="stylesheet" href="/app/css/style.css">
+    
+    <script src="/app/js/face-api.min.js"></script>
+</head>
+<body style="align-items: flex-start; flex-direction: column;">
+
+    <div class="navbar">
+        <h2>Live Attendance Session</h2>
+        <a href="/app/dashboard.html" class="btn-danger" style="text-decoration: none;">End Session</a>
+    </div>
+
+    <div class="camera-container">
+        <video id="video" width="800" height="600" autoplay muted></video>
+    </div>
+
+    <div class="status-box">
+        <p id="statusText">Loading AI Models... Please wait.</p>
+    </div>
+
+    <script src="/app/js/camera.js"></script>
+</body>
+</html>

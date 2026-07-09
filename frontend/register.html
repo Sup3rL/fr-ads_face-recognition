@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register Student - Attendance System</title>
+    <link rel="stylesheet" href="/app/css/style.css">
+    <script src="/app/js/face-api.min.js"></script>
+</head>
+<body style="align-items: flex-start;">
+
+    <div class="navbar">
+        <h2>Register New Student</h2>
+        <a href="/app/dashboard.html" class="btn-danger" style="text-decoration: none;">Back to Dashboard</a>
+    </div>
+
+    <div class="dashboard-container">
+        <p id="statusText" style="font-weight: bold; color: var(--primary);">Loading Camera and AI...</p>
+        
+        <div class="register-layout">
+            <div class="register-camera">
+                <video id="video" width="100%" autoplay muted style="border-radius: 8px; transform: scaleX(-1);"></video>
+                </div>
+
+            <div class="register-form">
+                <form id="registerForm">
+                    <div class="form-group">
+                        <label>NIM (Student ID)</label>
+                        <input type="text" id="nim" required placeholder="e.g. 10123456">
+                    </div>
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" id="name" required placeholder="e.g. John Doe">
+                    </div>
+                    <div class="form-group">
+                        <label>Study Program</label>
+                        <input type="text" id="program" required placeholder="e.g. Computer Science">
+                    </div>
+                    
+                    <button type="submit" class="btn" id="submitBtn" disabled>Please wait for camera...</button>
+                    <p id="error-message"></p>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="/app/js/register.js"></script>
+</body>
+</html>

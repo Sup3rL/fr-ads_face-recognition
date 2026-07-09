@@ -14,12 +14,22 @@ func SetupRoutes() *gin.Engine {
 	// This means if a user goes to /app/login.html, Gin will look inside the "frontend" folder.
 	router.Static("/app", "./frontend")
 
+	router.Static("/models", "./face-models")
+
 	api := router.Group("/api")
 	{
 		api.GET("/ping", func(c *gin.Context) {
 			c.JSON(200, gin.H{"message": "pong"})
 		})
 		api.POST("/login", handlers.Login)
+
+		api.POST("/register-face", handlers.RegisterStudent)
+
+		api.POST("/sessions", handlers.StartSession)
+
+		api.POST("/authenticate-face", handlers.AuthenticateFace)
+
+		api.GET("/history", handlers.GetAttendanceHistory)
 	}
 
 	return router

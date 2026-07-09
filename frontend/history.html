@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance History</title>
+    <link rel="stylesheet" href="/app/css/style.css">
+</head>
+<body style="align-items: flex-start;">
+
+    <div class="navbar">
+        <h2>Attendance History</h2>
+        <a href="/app/dashboard.html" class="btn-danger" style="text-decoration: none;">Back to Dashboard</a>
+    </div>
+
+    <div class="dashboard-container">
+        
+        <div class="table-container">
+            <div class="header-actions">
+                <h3>Recent Records</h3>
+                <button id="exportBtn" class="btn" style="width: auto;">📥 Export to CSV</button>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>NIM</th>
+                        <th>Name</th>
+                        <th>Course</th>
+                        <th>Time</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="historyTableBody">
+                    <tr><td colspan="5" style="text-align:center;">Loading data...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <script src="/app/js/history.js"></script>
+</body>
+</html>

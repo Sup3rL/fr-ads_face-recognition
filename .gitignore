@@ -1,0 +1,42 @@
+# =========================
+# 1. Security & Secrets
+# =========================
+# NEVER commit the .env file! It contains our real passwords and JWT secret.
+.env
+
+# =========================
+# 2. Golang Binaries
+# =========================
+# When we eventually "build" our Go app for production, it creates an executable file.
+# We ignore these because they are compiled code, not source code.
+/attendance-system
+*.exe
+*.out
+*.app
+
+# =========================
+# 3. User Uploads & Storage
+# =========================
+# We want to keep the folders, but ignore the actual pictures inside them.
+# We don't want student faces pushed to a public GitHub repo!
+/storage/faces/*
+!/storage/faces/.gitkeep
+/uploads/*
+!/uploads/.gitkeep
+
+# =========================
+# 4. Heavy AI Models
+# =========================
+# These are large binary files. Since we know how to download them via curl, 
+# we shouldn't bloat our Git repository with them.
+/face-models/*
+!/face-models/.gitkeep
+
+# =========================
+# 5. OS & Editor Files
+# =========================
+# These are hidden files created by Windows/Mac or code editors (like VS Code).
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
