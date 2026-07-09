@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Attendance System</title>
+    <link rel="stylesheet" href="/app/css/style.css">
+</head>
+<body style="align-items: flex-start;"> <div class="navbar">
+        <h2>Face Attendance System</h2>
+        <div>
+            <span id="welcomeMessage" style="margin-right: 20px; font-weight: bold;"></span>
+            <button id="logoutBtn" class="btn-danger">Logout</button>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        <h1>Lecturer Dashboard</h1>
+        <p>Select an action below to continue.</p>
+
+        <div class="grid">
+            <a href="/app/camera.html" class="card">
+                <h3>📸 Start Session</h3>
+                <p>Open the camera and scan student faces.</p>
+            </a>
+            
+            <a href="/app/register.html" class="card">
+                <h3>👤 Register Student</h3>
+                <p>Add a new student face to the database.</p>
+            </a>
+
+            <a href="/app/history.html" class="card">
+                <h3>📋 Attendance History</h3>
+                <p>View past attendance records.</p>
+            </a>
+
+            <a href="#" class="card" onclick="alert('Statistics coming soon!')">
+                <h3>📊 Statistics</h3>
+                <p>View attendance charts and data.</p>
+            </a>
+        </div>
+    </div>
+
+    <script src="/app/js/dashboard.js"></script>
+</body>
+</html>
