@@ -4,7 +4,27 @@ const statusText = document.getElementById('statusText');
 let currentSessionId = null;
 let isProcessing = false; // Our Spam Prevention Lock!
 
-// 1. Load the AI Models
+// --- 1. DYNAMIC DATA EXTRACTION ---
+// Get Course ID from the URL
+const urlParams = new URLSearchParams(window.location.search);
+const currentCourseId = parseInt(urlParams.get('course_id'));
+
+if (!currentCourseId) {
+    alert("Error: No class selected.");
+    window.location.href = '/app/dashboard.html';
+}
+
+// Get Lecturer ID from the JWT Token
+const token = localStorage.getItem('token');
+if (!token) window.location.href = '/app/login.html';
+
+const base64Url = token.split('.')[1];
+let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+while (base64.length % 4) { base64 += '='; }
+const payload = JSON.parse(window.atob(base64));
+const currentLecturerId = payload.id;
+
+// --- 2. LOAD AI MODELS ---
 Promise.all([
     faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
     faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
@@ -14,22 +34,23 @@ Promise.all([
     statusText.textContent = "Error loading AI models.";
 });
 
-// 2. Turn on the Webcam
+// --- 3. TURN ON WEBCAM ---
 function startVideo() {
     navigator.mediaDevices.getUserMedia({ video: true })
         .then(stream => { video.srcObject = stream; })
         .catch(err => console.error(err));
 }
 
-// 3. Helper Function: Start the Database Session
+// --- 4. START SESSION (DYNAMIC) ---
 async function startAttendanceSession() {
     try {
-        // For this tutorial, we hardcode Course 1 and Lecturer 1.
-        // In a real app, the lecturer would select this from a dropdown.
         const response = await fetch('/api/sessions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ course_id: 1, lecturer_id: 1 })
+            body: JSON.stringify({ 
+                course_id: currentCourseId, 
+                lecturer_id: currentLecturerId 
+            })
         });
         const data = await response.json();
         if (response.ok) {
@@ -41,20 +62,17 @@ async function startAttendanceSession() {
     }
 }
 
-// 4. The Main Loop!
+// --- 5. THE MAIN AI LOOP ---
 video.addEventListener('play', async () => {
     
-    // Create the session in PostgreSQL!
     await startAttendanceSession();
 
-    // Setup the invisible canvas
     const canvas = faceapi.createCanvasFromMedia(video);
     document.querySelector('.camera-container').append(canvas);
     const displaySize = { width: video.width, height: video.height };
     faceapi.matchDimensions(canvas, displaySize);
 
     setInterval(async () => {
-        // If we are already talking to the backend, OR the session hasn't started yet, DO NOTHING.
         if (isProcessing || !currentSessionId) return;
 
         const detection = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
@@ -64,55 +82,50 @@ video.addEventListener('play', async () => {
         canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
 
         if (detection) {
-            // Draw the box
             const resizedDetection = faceapi.resizeResults(detection, displaySize);
+            
+            // --- THE CLASSIC BLUE BOX IS BACK! ---
             faceapi.draw.drawDetections(canvas, resizedDetection);
+            faceapi.draw.drawFaceLandmarks(canvas, resizedDetection);
 
-            // LOCK THE CAMERA!
             isProcessing = true; 
             statusText.textContent = "Verifying Identity...";
             statusText.style.color = "var(--primary)";
 
             try {
-                // Send the 128 numbers to Golang!
+                // SEND DYNAMIC COURSE ID TO BACKEND!
                 const response = await fetch('/api/authenticate-face', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         session_id: currentSessionId,
+                        course_id: currentCourseId, 
                         descriptor: Array.from(detection.descriptor)
                     })
                 });
 
                 const data = await response.json();
 
-                // Handle the Backend's Answer:
                 if (data.status === "PRESENT") {
                     statusText.innerHTML = `✅ Success: ${data.name} (${data.nim})`;
                     statusText.style.color = "var(--success)";
-                    // Pause for 3 seconds so they can read it, then unlock
                     setTimeout(() => { isProcessing = false; }, 3000);
-                
                 } else if (data.status === "Already Recorded") {
                     statusText.innerHTML = `⚠️ ${data.name} already recorded!`;
                     statusText.style.color = "var(--primary)";
-                    // Pause for 3 seconds, then unlock
                     setTimeout(() => { isProcessing = false; }, 3000);
-                
                 } else {
                     statusText.innerHTML = `❌ Unknown Face`;
                     statusText.style.color = "var(--danger)";
-                    // Pause for 1.5 seconds, then unlock
                     setTimeout(() => { isProcessing = false; }, 1500);
                 }
 
             } catch (err) {
                 console.error("Backend Error:", err);
-                isProcessing = false; // Unlock if there was an error
+                isProcessing = false; 
             }
 
         } else {
-            // No face detected
             statusText.textContent = "Silakan Maju (Please Step Forward)";
             statusText.style.color = "var(--success)";
         }

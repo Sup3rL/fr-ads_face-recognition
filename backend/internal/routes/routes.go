@@ -30,6 +30,16 @@ func SetupRoutes() *gin.Engine {
 		api.POST("/authenticate-face", handlers.AuthenticateFace)
 
 		api.GET("/history", handlers.GetAttendanceHistory)
+
+		// --- COURSE MANAGEMENT ROUTES ---
+		api.GET("/courses", handlers.GetCourses)
+		api.POST("/courses", handlers.CreateCourse) // <-- NEW
+
+		api.GET("/courses/students", handlers.GetEnrolledStudents) // <-- NEW
+		api.GET("/students/search", handlers.SearchStudent)
+
+		api.POST("/courses/enroll", handlers.EnrollStudent)
+		api.POST("/courses/unenroll", handlers.RemoveStudent)
 	}
 
 	return router

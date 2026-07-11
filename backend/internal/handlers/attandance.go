@@ -13,6 +13,7 @@ import (
 
 type AuthenticateRequest struct {
 	SessionID      int       `json:"session_id" binding:"required"`
+	CourseID       int       `json:"course_id" binding:"required"` // ADD THIS
 	FaceDescriptor []float32 `json:"descriptor" binding:"required"`
 }
 
@@ -22,11 +23,18 @@ func AuthenticateFace(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 		return
 	}
+	query := `
+		SELECT s.id, s.nim, s.name, s.face_descriptor 
+		FROM students s
+		JOIN course_students cs ON s.id = cs.student_id
+		WHERE cs.course_id = $1`
+
+	rows, err := database.DB.Query(query, req.CourseID)
 
 	// 1. Fetch ALL registered students from the database
 	// *Senior Note: In a massive system with millions of users, we would use a specialized "Vector Database"
 	// like pgvector. But for a single university, loading students into memory is incredibly fast and perfectly fine.*
-	rows, err := database.DB.Query(`SELECT id, nim, name, face_descriptor FROM students`)
+	//rows, err := database.DB.Query(`SELECT id, nim, name, face_descriptor FROM students`)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
 		return

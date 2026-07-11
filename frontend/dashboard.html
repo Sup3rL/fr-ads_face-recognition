@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Attendance System</title>
+    <title>My Classes - Face Attendance</title>
     <link rel="stylesheet" href="/app/css/style.css">
 </head>
-<body style="align-items: flex-start;"> <div class="navbar">
-        <h2>Face Attendance System</h2>
+<body style="align-items: flex-start;">
+
+    <div class="navbar">
+        <h2>Face Attendance LMS</h2>
         <div>
             <span id="welcomeMessage" style="margin-right: 20px; font-weight: bold;"></span>
             <button id="logoutBtn" class="btn-danger">Logout</button>
@@ -15,30 +17,39 @@
     </div>
 
     <div class="dashboard-container">
-        <h1>Lecturer Dashboard</h1>
-        <p>Select an action below to continue.</p>
-
-        <div class="grid">
-            <a href="/app/camera.html" class="card">
-                <h3>📸 Start Session</h3>
-                <p>Open the camera and scan student faces.</p>
-            </a>
-            
-            <a href="/app/register.html" class="card">
-                <h3>👤 Register Student</h3>
-                <p>Add a new student face to the database.</p>
-            </a>
-
-            <a href="/app/history.html" class="card">
-                <h3>📋 Attendance History</h3>
-                <p>View past attendance records.</p>
-            </a>
-
-            <a href="#" class="card" onclick="alert('Statistics coming soon!')">
-                <h3>📊 Statistics</h3>
-                <p>View attendance charts and data.</p>
-            </a>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h1>My Classes</h1>
+            <!-- Global Student Registration is moved here as a utility -->
+            <a href="/app/register.html" class="btn" style="width: auto; text-decoration: none; font-size: 14px;">+ Register Global Student</a>
         </div>
+        <p>Select a class below to manage its students and start attendance.</p>
+
+        <!-- The dynamic grid for classes -->
+        <div id="classGrid" class="grid">
+            <!-- Javascript will inject class cards here -->
+            
+            <div class="card" id="createClassCard" style="border: 2px dashed var(--primary); background: transparent; display: flex; align-items: center; justify-content: center;">
+                <h3 style="color: var(--primary); margin: 0;">+ Create New Class</h3>
+            </div>
+        </div>
+
+        <!-- Hidden Form for Creating a Class -->
+        <div id="createClassForm" style="display: none; margin-top: 20px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); max-width: 400px;">
+            <h3 style="margin-top: 0; color: var(--primary);">Create New Class</h3>
+            <form id="newClassForm">
+                <div class="form-group">
+                    <label>Course Code</label>
+                    <input type="text" id="courseCode" required placeholder="e.g. CS101">
+                </div>
+                <div class="form-group">
+                    <label>Course Name</label>
+                    <input type="text" id="courseName" required placeholder="e.g. Introduction to Programming">
+                </div>
+                <button type="submit" class="btn">Save Class</button>
+                <button type="button" class="btn-danger" id="cancelCreateBtn" style="margin-top: 10px; width: 100%;">Cancel</button>
+            </form>
+        </div>
+
     </div>
 
     <script src="/app/js/dashboard.js"></script>

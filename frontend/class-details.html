@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Class Details - Face Attendance</title>
+    <link rel="stylesheet" href="/app/css/style.css">
+</head>
+<body style="align-items: flex-start;">
+
+    <div class="navbar">
+        <h2 id="classNameDisplay">Loading Class...</h2>
+        <a href="/app/dashboard.html" class="btn-danger" style="text-decoration: none;">Back to Dashboard</a>
+    </div>
+
+    <div class="dashboard-container">
+        
+        <!-- Action Buttons -->
+        <div style="display: flex; gap: 15px; margin-bottom: 30px;">
+            <button id="startSessionBtn" class="btn" style="flex: 2; font-size: 18px;">📷 Start Attendance Session</button>
+            <button id="viewHistoryBtn" class="btn" style="flex: 1; background-color: var(--secondary);">📊 View History</button>
+        </div>
+
+        <div class="register-layout">
+            
+            <!-- Left Side: Enrolled Students -->
+            <div class="register-form" style="flex: 2;">
+                <h3 style="margin-top: 0; color: var(--primary);">Enrolled Students</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>NIM</th>
+                            <th>Name</th>
+                            <th style="text-align: right;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rosterTableBody">
+                        <tr><td colspan="3" style="text-align:center;">Loading students...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Right Side: Add New Student -->
+            <div class="register-form" style="flex: 1; align-self: flex-start;">
+                <h3 style="margin-top: 0; color: var(--primary);">Add Student</h3>
+                <form id="searchForm">
+                    <div class="form-group">
+                        <label>Search by NIM</label>
+                        <input type="text" id="searchNim" required placeholder="e.g. 1001">
+                    </div>
+                    <button type="submit" class="btn" style="padding: 10px;">Search</button>
+                </form>
+                <p id="searchError" style="color: var(--danger); display: none; margin-top: 10px; font-size: 14px;"></p>
+
+                <!-- Search Result Card -->
+                <div id="resultCard" style="display: none; text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
+                    <h4 id="foundName" style="margin: 0; font-size: 18px;">John Doe</h4>
+                    <p id="foundNim" style="font-size: 14px; color: #666; margin-bottom: 15px;">NIM: 1001</p>
+                    <button id="enrollBtn" class="btn" style="background-color: var(--success); padding: 10px;">+ Add to Class</button>
+                    <p id="enrollMessage" style="margin-top: 10px; font-weight: bold; font-size: 14px;"></p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="/app/js/class-details.js"></script>
+</body>
+</html>
