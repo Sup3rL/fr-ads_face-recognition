@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"database/sql"
+	"encoding/csv"
 	"encoding/json"
 	"net/http"
 
@@ -116,4 +117,82 @@ func AuthenticateFace(c *gin.Context) {
 		"nim":        bestMatchNIM,
 		"confidence": lowestDistance,
 	})
+}
+
+func ExportAttendanceCSV(c *gin.Context) {
+	courseID := c.Query("course_id")
+
+	// 1. Get sessions
+	rows, err := database.DB.Query("SELECT id, session_name FROM attendance_sessions WHERE course_id = $1 ORDER BY id ASC", courseID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Query sessions failed: " + err.Error()})
+		return
+	}
+	defer rows.Close()
+
+	type Session struct {
+		id   int
+		name string
+	}
+	var sessions []Session
+	for rows.Next() {
+		var s Session
+		rows.Scan(&s.id, &s.name)
+		sessions = append(sessions, s)
+	}
+
+	// 2. Fetch attendance, joining with students to get NIM and Name
+	// We now select s.nim AND s.name
+	data := make(map[string]map[int]string)
+	studentNimMap := make(map[string]string) // Store NIM linked to Name
+
+	rows, err = database.DB.Query(`
+        SELECT s.nim, s.name, a.session_id, 'Present' 
+        FROM attendances a
+        JOIN students s ON a.student_id = s.id
+        WHERE a.session_id IN (SELECT id FROM attendance_sessions WHERE course_id = $1)`, courseID)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Query attendance failed: " + err.Error()})
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var nim, name, status string
+		var sessionID int
+		rows.Scan(&nim, &name, &sessionID, &status)
+		if _, ok := data[name]; !ok {
+			data[name] = make(map[int]string)
+		}
+		data[name][sessionID] = status
+		studentNimMap[name] = nim // Save NIM for this student
+	}
+
+	// 3. Write CSV
+	c.Header("Content-Type", "text/csv")
+	c.Header("Content-Disposition", "attachment;filename=attendance.csv")
+
+	writer := csv.NewWriter(c.Writer)
+
+	// Updated header: NIM first, then Name
+	header := []string{"NIM", "Student Name"}
+	for _, s := range sessions {
+		header = append(header, s.name)
+	}
+	writer.Write(header)
+
+	// Data rows
+	for name, nim := range studentNimMap {
+		row := []string{nim, name} // Add NIM and Name
+		for _, s := range sessions {
+			val := data[name][s.id]
+			if val == "" {
+				val = "Absent"
+			}
+			row = append(row, val)
+		}
+		writer.Write(row)
+	}
+	writer.Flush()
 }

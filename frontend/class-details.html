@@ -19,6 +19,8 @@
         <div style="display: flex; gap: 15px; margin-bottom: 30px;">
             <button id="startSessionBtn" class="btn" style="flex: 2; font-size: 18px;">📷 Start Attendance Session</button>
             <button id="viewHistoryBtn" class="btn" style="flex: 1; background-color: var(--secondary);">📊 View History</button>
+            <button id="exportCsvBtn" class="btn" style="flex: 1; background-color: var(--success); color: white;">📥 Export CSV</button>
+            <button id="deleteClassBtn" class="btn-danger" style="flex: 0.5; font-size: 14px;">Delete Class</button>
         </div>
 
         <div class="register-layout">
@@ -61,6 +63,25 @@
                 </div>
             </div>
 
+        </div>
+    </div>
+
+    <!-- Session Setup Popup -->
+    <div id="sessionModal" style="display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+        <div class="register-form" style="max-width: 400px; width: 90%;">
+            <h3>Setup Attendance Session</h3>
+            <form id="startSessionForm">
+                <div class="form-group">
+                    <label>Session Name</label>
+                    <input type="text" id="sessionName" placeholder="e.g. Session 1">
+                </div>
+                <div class="form-group">
+                    <label>Details</label>
+                    <input type="text" id="sessionDetails" placeholder="e.g. Midterm prep">
+                </div>
+                <button type="submit" class="btn">Start Camera</button>
+                <button type="button" class="btn-danger" id="closeModalBtn" style="margin-top: 10px; width: 100%;">Cancel</button>
+            </form>
         </div>
     </div>
 

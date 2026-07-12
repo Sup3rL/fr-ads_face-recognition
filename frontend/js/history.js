@@ -1,90 +1,115 @@
 document.addEventListener('DOMContentLoaded', async () => {
-    
-    // 1. Security Check
     const token = localStorage.getItem('token');
-    if (!token) {
-        window.location.href = '/app/login.html';
+    if (!token) { window.location.href = '/app/login.html'; return; }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const courseId = urlParams.get('course_id');
+
+    if (!courseId) {
+        alert("No class selected!");
+        window.location.href = '/app/dashboard.html';
         return;
     }
 
-    const tableBody = document.getElementById('historyTableBody');
-    const exportBtn = document.getElementById('exportBtn');
-    let attendanceData = []; // We will store the data here so the CSV exporter can use it
+    const sessionSelect = document.getElementById('sessionSelect');
+    const tableBody = document.getElementById('attendanceTableBody');
 
-    // 2. Fetch the data from our Golang backend
+    document.getElementById('backBtn').addEventListener('click', () => {
+        window.location.href = `/app/class-details.html?course_id=${courseId}`;
+    });
+
+    // 1. Load Sessions
     try {
-        const response = await fetch('/api/history');
-        attendanceData = await response.json();
+        const res = await fetch(`/api/sessions/class?course_id=${courseId}`);
+        const sessions = await res.json();
+        sessionSelect.innerHTML = '<option value="">-- Select a Session --</option>';
+        sessions.forEach(session => {
+            const date = new Date(session.opened_at).toLocaleString();
+            sessionSelect.innerHTML += `<option value="${session.id}">${session.session_name} (${date})</option>`;
+        });
+    } catch (e) { console.error(e); }
 
-        // Clear the "Loading..." message
+    // 2. Load Roster
+    let roster = [];
+    try {
+        const res = await fetch(`/api/courses/students?course_id=${courseId}`);
+        roster = await res.json();
+    } catch (e) { console.error(e); }
+
+    // 3. Render Table Function (This was missing!)
+    async function renderTable(sessionId, attendances) {
         tableBody.innerHTML = '';
-
-        if (attendanceData.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No attendance records found.</td></tr>';
-            return;
-        }
-
-        // 3. Loop through the data and create table rows
-        attendanceData.forEach(record => {
-            // Format the messy database timestamp into a readable date/time
-            const dateObj = new Date(record.attendance_time);
-            const formattedTime = dateObj.toLocaleString();
+        roster.forEach(student => {
+            const att = attendances.find(a => a.student_id === student.id);
+            const status = att ? att.status : 'ABSENT';
 
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${record.student_nim}</td>
-                <td><strong>${record.student_name}</strong></td>
-                <td>${record.course_name}</td>
-                <td>${formattedTime}</td>
-                <td>
-                    <span style="color: white; background-color: var(--success); padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">
-                        ${record.status}
-                    </span>
+                <td>${student.nim}</td>
+                <td>${student.name}</td>
+                <td>${status}</td>
+                <td style="text-align: right;">
+                    <select class="override-dropdown" data-sid="${student.id}" data-sessionid="${sessionId}">
+                        <option value="PRESENT" ${status === 'PRESENT' ? 'selected' : ''}>PRESENT (P)</option>
+                        <option value="IZIN" ${status === 'IZIN' ? 'selected' : ''}>IZIN (I)</option>
+                        <option value="ABSENT" ${status === 'ABSENT' ? 'selected' : ''}>ABSENT (A)</option>
+                    </select>
                 </td>
             `;
             tableBody.appendChild(row);
         });
 
-    } catch (error) {
-        console.error("Error fetching history:", error);
-        tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; color: red;">Failed to load data.</td></tr>';
+        // Add Listeners to dropdowns
+        document.querySelectorAll('.override-dropdown').forEach(select => {
+            select.addEventListener('change', async (e) => {
+                await overrideAttendance(e.target.dataset.sessionid, e.target.dataset.sid, e.target.value);
+            });
+        });
     }
 
-    // 4. The CSV Exporter!
-    exportBtn.addEventListener('click', () => {
-        if (attendanceData.length === 0) {
-            alert("No data to export!");
-            return;
-        }
-
-        // A. Create the CSV Headers
-        let csvContent = "NIM,Name,Course,Time,Status,Confidence Score\n";
-
-        // B. Loop through the data and add rows separated by commas
-        attendanceData.forEach(record => {
-            // We put quotes around strings just in case a name has a comma in it!
-            const row = [
-                `"${record.student_nim}"`,
-                `"${record.student_name}"`,
-                `"${record.course_name}"`,
-                `"${new Date(record.attendance_time).toLocaleString()}"`,
-                `"${record.status}"`,
-                record.confidence.toFixed(4) // Round the math to 4 decimal places
-            ];
-            // Join the array with commas, and add a new line (\n) at the end
-            csvContent += row.join(",") + "\n";
+    // 4. API Call for Override
+    async function overrideAttendance(sessionId, studentId, status) {
+        await fetch('/api/sessions/override', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                session_id: parseInt(sessionId),
+                student_id: parseInt(studentId),
+                status: status
+            })
         });
+        // Refresh data
+        const attRes = await fetch(`/api/sessions/attendance?session_id=${sessionId}`);
+        const attendances = await attRes.json();
+        renderTable(sessionId, attendances);
+    }
 
-        // C. The Blob Trick: Convert the text into a downloadable file
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        
-        // D. Create an invisible HTML link, click it, and delete it!
-        const link = document.createElement("a");
-        link.setAttribute("href", url);
-        link.setAttribute("download", `attendance_report_${new Date().toISOString().split('T')[0]}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+    // 5. Handle Session Change
+    sessionSelect.addEventListener('change', async (e) => {
+        const sessionId = e.target.value;
+        if (!sessionId) return;
+        const attRes = await fetch(`/api/sessions/attendance?session_id=${sessionId}`);
+        const attendances = await attRes.json();
+        renderTable(sessionId, attendances);
     });
+
+    document.getElementById('deleteSessionBtn').addEventListener('click', async () => {
+    const sessionId = sessionSelect.value;
+    if (!sessionId) {
+        alert("Please select a session to delete first.");
+        return;
+    }
+
+    if (confirm("Are you sure? This will permanently delete all attendance records for this session.")) {
+        try {
+            const res = await fetch(`/api/sessions?session_id=${sessionId}`, { method: 'DELETE' });
+            if (res.ok) {
+                alert("Session deleted.");
+                window.location.reload(); // Refresh the page to update the list
+            } else {
+                alert("Failed to delete session.");
+            }
+        } catch (e) { console.error(e); }
+    }
+});
 });

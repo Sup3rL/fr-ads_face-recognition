@@ -191,3 +191,29 @@ func RemoveStudent(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Student successfully removed from class."})
 }
+
+// --- DELETE A CLASS ---
+func DeleteCourse(c *gin.Context) {
+	// Check both query parameters and path parameters
+	courseID := c.Query("course_id")
+
+	if courseID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "course_id is required"})
+		return
+	}
+
+	// Execute the deletion
+	result, err := database.DB.Exec("DELETE FROM courses WHERE id = $1", courseID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error: " + err.Error()})
+		return
+	}
+
+	rowsAffected, _ := result.RowsAffected()
+	if rowsAffected == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Class not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Class deleted successfully"})
+}

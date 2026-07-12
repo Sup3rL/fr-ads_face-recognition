@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Global Student Directory</title>
+    <link rel="stylesheet" href="/app/css/style.css">
+</head>
+<body style="align-items: flex-start;">
+    <div class="navbar">
+        <h2>Global Student Directory</h2>
+        <a href="/app/dashboard.html" class="btn-danger">Back to Dashboard</a>
+    </div>
+
+    <div class="dashboard-container">
+        <!-- Button to go to the Registration page with camera -->
+        <a href="/app/register.html" class="btn" style="width: auto; margin-bottom: 20px;">+ Add New Student</a>
+        
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>NIM</th>
+                        <th>Name</th>
+                        <th>Program</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="studentTableBody">
+                    <tr><td colspan="4" style="text-align:center;">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script src="/app/js/global-students.js"></script>
+</body>
+</html>

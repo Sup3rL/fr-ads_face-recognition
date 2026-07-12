@@ -12,6 +12,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type Student struct {
+	ID      int    `json:"id"`
+	NIM     string `json:"nim"`
+	Name    string `json:"name"`
+	Program string `json:"program"`
+}
+
 // RegisterRequest defines what we expect the frontend to send us
 type RegisterRequest struct {
 	NIM            string    `json:"nim" binding:"required"`
@@ -79,4 +86,53 @@ func RegisterStudent(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Student successfully registered!",
 	})
+}
+
+func GetAllStudents(c *gin.Context) {
+	rows, err := database.DB.Query("SELECT id, nim, name, program FROM students ORDER BY nim ASC")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch students"})
+		return
+	}
+	defer rows.Close()
+
+	var students []Student // Make sure this struct includes Program if needed
+	for rows.Next() {
+		var s Student
+		rows.Scan(&s.ID, &s.NIM, &s.Name, &s.Program)
+		students = append(students, s)
+	}
+	c.JSON(http.StatusOK, students)
+}
+
+// Update basic info (NIM, Name, and Program)
+func UpdateStudent(c *gin.Context) {
+	id := c.Param("id")
+	var req struct {
+		NIM     string `json:"nim"`
+		Name    string `json:"name"`
+		Program string `json:"program"` // Add this
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid data"})
+		return
+	}
+	// Update all three fields
+	_, err := database.DB.Exec("UPDATE students SET nim=$1, name=$2, program=$3 WHERE id=$4", req.NIM, req.Name, req.Program, id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Update failed"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Updated successfully"})
+}
+
+// Delete a student
+func DeleteStudent(c *gin.Context) {
+	id := c.Param("id")
+	_, err := database.DB.Exec("DELETE FROM students WHERE id=$1", id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete student"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Deleted successfully"})
 }

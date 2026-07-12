@@ -3,40 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Attendance History</title>
+    <title>Session Dashboard - Face Attendance</title>
     <link rel="stylesheet" href="/app/css/style.css">
 </head>
 <body style="align-items: flex-start;">
 
     <div class="navbar">
-        <h2>Attendance History</h2>
-        <a href="/app/dashboard.html" class="btn-danger" style="text-decoration: none;">Back to Dashboard</a>
+        <h2>Session Management</h2>
+        <button id="backBtn" class="btn-danger">Back to Class</button>
     </div>
 
     <div class="dashboard-container">
-        
-        <div class="table-container">
-            <div class="header-actions">
-                <h3>Recent Records</h3>
-                <button id="exportBtn" class="btn" style="width: auto;">📥 Export to CSV</button>
+        <div class="register-form" style="max-width: 100%;">
+            
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="color: var(--primary); margin-top: 0;">1. Select Past Session</h3>
+                <!-- The CSV Export Button -->
+                <div style="display: flex; gap: 10px;">
+                    <button id="deleteSessionBtn" class="btn-danger" style="width: auto; padding: 10px;">🗑️ Delete Session</button>
+                    <!-- <button id="exportBtn" class="btn" style="width: auto; padding: 10px;">📥 Export to CSV</button> -->
+                </div>
             </div>
-
-            <table>
-                <thead>
-                    <tr>
-                        <th>NIM</th>
-                        <th>Name</th>
-                        <th>Course</th>
-                        <th>Time</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody id="historyTableBody">
-                    <tr><td colspan="5" style="text-align:center;">Loading data...</td></tr>
-                </tbody>
-            </table>
+            
+            <select id="sessionSelect" class="form-group" style="width: 100%; padding: 12px; border-radius: 6px;">
+                <option value="">Loading sessions...</option>
+            </select>
+            
+            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+            
+            <h3 style="color: var(--primary);">2. Roster & Manual Override</h3>
+            <div class="table-container" style="margin-top: 0; box-shadow: none; border: 1px solid #eee;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>NIM</th>
+                            <th>Name</th>
+                            <th>Status</th>
+                            <th style="text-align: right;">Manual Override</th>
+                        </tr>
+                    </thead>
+                    <tbody id="attendanceTableBody">
+                        <tr><td colspan="4" style="text-align:center;">Please select a session first.</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
-
     </div>
 
     <script src="/app/js/history.js"></script>

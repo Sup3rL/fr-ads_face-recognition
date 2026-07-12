@@ -2,19 +2,18 @@ const video = document.getElementById('video');
 const statusText = document.getElementById('statusText');
 
 let currentSessionId = null;
-let isProcessing = false; // Our Spam Prevention Lock!
+let isProcessing = false;
 
 // --- 1. DYNAMIC DATA EXTRACTION ---
-// Get Course ID from the URL
 const urlParams = new URLSearchParams(window.location.search);
 const currentCourseId = parseInt(urlParams.get('course_id'));
+const existingSessionId = urlParams.get('session_id'); // Catch the session if it exists!
 
 if (!currentCourseId) {
     alert("Error: No class selected.");
     window.location.href = '/app/dashboard.html';
 }
 
-// Get Lecturer ID from the JWT Token
 const token = localStorage.getItem('token');
 if (!token) window.location.href = '/app/login.html';
 
@@ -34,38 +33,45 @@ Promise.all([
     statusText.textContent = "Error loading AI models.";
 });
 
-// --- 3. TURN ON WEBCAM ---
 function startVideo() {
     navigator.mediaDevices.getUserMedia({ video: true })
         .then(stream => { video.srcObject = stream; })
         .catch(err => console.error(err));
 }
 
-// --- 4. START SESSION (DYNAMIC) ---
-async function startAttendanceSession() {
-    try {
-        const response = await fetch('/api/sessions', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                course_id: currentCourseId, 
-                lecturer_id: currentLecturerId 
-            })
-        });
-        const data = await response.json();
-        if (response.ok) {
-            currentSessionId = data.session_id;
-            console.log("Database Session Started: ID " + currentSessionId);
+// --- 3. DYNAMIC SESSION HANDLER ---
+async function initializeSession() {
+    // If a session_id was passed in the URL, use it!
+    if (existingSessionId) {
+        currentSessionId = existingSessionId;
+        console.log("Resuming existing session: " + currentSessionId);
+    } else {
+        // Otherwise, create a new one
+        try {
+            const response = await fetch('/api/sessions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    course_id: currentCourseId, 
+                    lecturer_id: currentLecturerId,
+                    session_name: "Auto-Started Session"
+                })
+            });
+            const data = await response.json();
+            if (response.ok) {
+                currentSessionId = data.session_id;
+                console.log("New session created: " + currentSessionId);
+            }
+        } catch (error) {
+            console.error("Failed to start session:", error);
         }
-    } catch (error) {
-        console.error("Failed to start session:", error);
     }
 }
 
-// --- 5. THE MAIN AI LOOP ---
+// --- 4. THE MAIN AI LOOP ---
 video.addEventListener('play', async () => {
     
-    await startAttendanceSession();
+    await initializeSession(); // Call the new dynamic initializer
 
     const canvas = faceapi.createCanvasFromMedia(video);
     document.querySelector('.camera-container').append(canvas);
@@ -84,21 +90,19 @@ video.addEventListener('play', async () => {
         if (detection) {
             const resizedDetection = faceapi.resizeResults(detection, displaySize);
             
-            // --- THE CLASSIC BLUE BOX IS BACK! ---
+            // Blue Box remains here!
             faceapi.draw.drawDetections(canvas, resizedDetection);
             faceapi.draw.drawFaceLandmarks(canvas, resizedDetection);
 
             isProcessing = true; 
-            statusText.textContent = "Verifying Identity...";
-            statusText.style.color = "var(--primary)";
+            statusText.textContent = "Verifying...";
 
             try {
-                // SEND DYNAMIC COURSE ID TO BACKEND!
                 const response = await fetch('/api/authenticate-face', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        session_id: currentSessionId,
+                        session_id: parseInt(currentSessionId), // Ensure it's an int
                         course_id: currentCourseId, 
                         descriptor: Array.from(detection.descriptor)
                     })
@@ -107,15 +111,11 @@ video.addEventListener('play', async () => {
                 const data = await response.json();
 
                 if (data.status === "PRESENT") {
-                    statusText.innerHTML = `✅ Success: ${data.name} (${data.nim})`;
+                    statusText.innerHTML = `✅ ${data.name}`;
                     statusText.style.color = "var(--success)";
                     setTimeout(() => { isProcessing = false; }, 3000);
-                } else if (data.status === "Already Recorded") {
-                    statusText.innerHTML = `⚠️ ${data.name} already recorded!`;
-                    statusText.style.color = "var(--primary)";
-                    setTimeout(() => { isProcessing = false; }, 3000);
                 } else {
-                    statusText.innerHTML = `❌ Unknown Face`;
+                    statusText.innerHTML = `❌ ${data.status}`;
                     statusText.style.color = "var(--danger)";
                     setTimeout(() => { isProcessing = false; }, 1500);
                 }
@@ -124,10 +124,8 @@ video.addEventListener('play', async () => {
                 console.error("Backend Error:", err);
                 isProcessing = false; 
             }
-
         } else {
-            statusText.textContent = "Silakan Maju (Please Step Forward)";
-            statusText.style.color = "var(--success)";
+            statusText.textContent = "Please step forward";
         }
     }, 100);
 });

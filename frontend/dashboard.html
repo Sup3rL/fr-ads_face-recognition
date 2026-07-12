@@ -20,7 +20,7 @@
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <h1>My Classes</h1>
             <!-- Global Student Registration is moved here as a utility -->
-            <a href="/app/register.html" class="btn" style="width: auto; text-decoration: none; font-size: 14px;">+ Register Global Student</a>
+            <a href="/app/global-students.html" class="btn" style="width: auto; text-decoration: none; font-size: 14px;">+ Register Global Student</a>
         </div>
         <p>Select a class below to manage its students and start attendance.</p>
 
@@ -34,20 +34,22 @@
         </div>
 
         <!-- Hidden Form for Creating a Class -->
-        <div id="createClassForm" style="display: none; margin-top: 20px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); max-width: 400px;">
-            <h3 style="margin-top: 0; color: var(--primary);">Create New Class</h3>
-            <form id="newClassForm">
-                <div class="form-group">
-                    <label>Course Code</label>
-                    <input type="text" id="courseCode" required placeholder="e.g. CS101">
-                </div>
-                <div class="form-group">
-                    <label>Course Name</label>
-                    <input type="text" id="courseName" required placeholder="e.g. Introduction to Programming">
-                </div>
-                <button type="submit" class="btn">Save Class</button>
-                <button type="button" class="btn-danger" id="cancelCreateBtn" style="margin-top: 10px; width: 100%;">Cancel</button>
-            </form>
+        <div id="createClassForm" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+            <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); width: 90%; max-width: 400px;">
+                <h3 style="margin-top: 0; color: var(--primary);">Create New Class</h3>
+                <form id="newClassForm">
+                    <div class="form-group">
+                        <label>Course Code</label>
+                        <input type="text" id="courseCode" required placeholder="e.g. CS101">
+                    </div>
+                    <div class="form-group">
+                        <label>Course Name</label>
+                        <input type="text" id="courseName" required placeholder="e.g. Introduction to Programming">
+                    </div>
+                    <button type="submit" class="btn">Save Class</button>
+                    <button type="button" class="btn-danger" id="cancelCreateBtn" style="margin-top: 10px; width: 100%;">Cancel</button>
+                </form>
+            </div>
         </div>
 
     </div>

@@ -40,6 +40,20 @@ func SetupRoutes() *gin.Engine {
 
 		api.POST("/courses/enroll", handlers.EnrollStudent)
 		api.POST("/courses/unenroll", handlers.RemoveStudent)
+
+		api.GET("/sessions/class", handlers.GetClassSessions) // <-- NEW
+		api.POST("/sessions/override", handlers.OverrideAttendance)
+		api.GET("/sessions/attendance", handlers.GetSessionAttendance)
+
+		api.DELETE("/sessions", handlers.DeleteSession) // <-- ADD THIS
+
+		api.DELETE("/courses", handlers.DeleteCourse) // <-- ADD THIS
+
+		api.GET("/students", handlers.GetAllStudents)
+		api.PUT("/students/:id", handlers.UpdateStudent)
+		api.DELETE("/students/:id", handlers.DeleteStudent)
+
+		api.GET("/export-attendance", handlers.ExportAttendanceCSV)
 	}
 
 	return router
