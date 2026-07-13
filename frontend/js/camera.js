@@ -115,8 +115,8 @@ video.addEventListener('play', async () => {
                     statusText.style.color = "var(--success)";
                     setTimeout(() => { isProcessing = false; }, 3000);
                 } else {
-                    statusText.innerHTML = `❌ ${data.status}`;
-                    statusText.style.color = "var(--danger)";
+                    statusText.innerHTML = `✅ ${data.name} ${data.status}`;
+                    statusText.style.color = "var(--success)";
                     setTimeout(() => { isProcessing = false; }, 1500);
                 }
 

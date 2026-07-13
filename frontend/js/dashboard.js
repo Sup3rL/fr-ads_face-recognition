@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', async () => {
     const token = localStorage.getItem('token');
-    const name = localStorage.getItem('name');
+    const name = localStorage.getItem('lecturerName');
     
     if (!token) {
         window.location.href = '/app/login.html';
@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const payload = JSON.parse(window.atob(base64));
     const lecturerId = payload.id; 
 
-    document.getElementById('welcomeMessage').textContent = `Welcome, ${name}`;
+    document.getElementById('welcomeMessage').textContent = `Welcome ${name || 'Lecturer'}`;
 
     const classGrid = document.getElementById('classGrid');
     const createClassCard = document.getElementById('createClassCard');
@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const card = document.createElement('a');
                 card.href = `/app/class-details.html?course_id=${course.id}`;
                 card.className = 'card';
-                card.innerHTML = `<h3>🏫 ${course.course_name}</h3><p style="color: #666; font-size: 14px;">Code: ${course.course_code}</p>`;
+                card.innerHTML = `<h3> ${course.course_name}</h3><p style="color: #666; font-size: 14px;">Code: ${course.course_code}</p>`;
                 classGrid.insertBefore(card, createClassCard);
             });
         } catch (error) { console.error("Error loading courses:", error); }

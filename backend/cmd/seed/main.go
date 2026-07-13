@@ -16,9 +16,9 @@ func main() {
 	database.Connect()
 
 	// 2. Information for our test admin
-	nip := "admin123"
-	name := "Super Admin Lecturer"
-	plainPassword := "password123" // The password they will type
+	nip := "123"
+	name := "Lecturer"
+	plainPassword := "123" // The password they will type
 
 	// 3. Hash the password securely
 	hashedBytes, err := bcrypt.GenerateFromPassword([]byte(plainPassword), bcrypt.DefaultCost)
