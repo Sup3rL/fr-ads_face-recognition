@@ -1,0 +1,202 @@
+@startuml Attendance System - Project Class Diagram
+
+skinparam class {
+  BackgroundColor #F5F5F5
+  BorderColor #37474F
+  ArrowColor #37474F
+}
+
+' Actors represented as classes with stereotype
+class LecturerActor <<Actor>> {
+}
+class StudentActor <<Actor>> {
+}
+
+' Domain models from database schema
+class Lecturer {
+  - id: int <<PK>>
+  - nip: string <<UK>>
+  - name: string
+  - password_hash: string
+  - created_at: timestamp
+}
+
+class Student {
+  - id: int <<PK>>
+  - nim: string <<UK>>
+  - name: string
+  - program: string
+  - face_descriptor: JSONB
+  - photo_path: string
+  - created_at: timestamp
+}
+
+class Course {
+  - id: int <<PK>>
+  - course_code: string <<UK>>
+  - course_name: string
+  - lecturer_id: int <<FK>>
+}
+
+class CourseStudent {
+  - course_id: int <<FK>>
+  - student_id: int <<FK>>
+}
+
+class AttendanceSession {
+  - id: int <<PK>>
+  - course_id: int <<FK>>
+  - lecturer_id: int <<FK>>
+  - opened_at: timestamp
+  - closed_at: timestamp
+  - status: string
+  - session_name: string
+  - details: string
+}
+
+class Attendance {
+  - id: int <<PK>>
+  - session_id: int <<FK>>
+  - student_id: int <<FK>>
+  - attendance_time: timestamp
+  - confidence: float64
+  - status: string
+}
+
+' Request/response structures used in handlers
+class LoginRequest {
+  + nip: string
+  + password: string
+}
+
+class RegisterRequest {
+  + nim: string
+  + name: string
+  + program: string
+  + face_descriptor: []float32
+  + photo_base64: string
+}
+
+class CourseRequest {
+  + course_code: string
+  + course_name: string
+  + lecturer_id: int
+}
+
+class EnrollRequest {
+  + course_id: int
+  + student_id: int
+}
+
+class RemoveStudentRequest {
+  + course_id: int
+  + student_id: int
+}
+
+class StartSessionRequest {
+  + course_id: int
+  + lecturer_id: int
+  + session_name: string
+  + details: string
+}
+
+class OverrideRequest {
+  + session_id: int
+  + student_id: int
+  + status: string
+}
+
+class AuthenticateRequest {
+  + session_id: int
+  + course_id: int
+  + descriptor: []float32
+}
+
+' Handler classes matching Go handler files
+class AuthHandler {
+  + Login(c *gin.Context)
+}
+
+class StudentHandler {
+  + RegisterStudent(c *gin.Context)
+  + GetAllStudents(c *gin.Context)
+  + UpdateStudent(c *gin.Context)
+  + DeleteStudent(c *gin.Context)
+}
+
+class CourseHandler {
+  + GetCourses(c *gin.Context)
+  + SearchStudent(c *gin.Context)
+  + CreateCourse(c *gin.Context)
+  + EnrollStudent(c *gin.Context)
+  + RemoveStudent(c *gin.Context)
+  + GetEnrolledStudents(c *gin.Context)
+  + DeleteCourse(c *gin.Context)
+}
+
+class SessionHandler {
+  + StartSession(c *gin.Context)
+  + GetClassSessions(c *gin.Context)
+  + OverrideAttendance(c *gin.Context)
+  + GetSessionAttendance(c *gin.Context)
+  + DeleteSession(c *gin.Context)
+}
+
+class AttendanceHandler {
+  + AuthenticateFace(c *gin.Context)
+  + ExportAttendanceCSV(c *gin.Context)
+}
+
+class HistoryHandler {
+  + GetAttendanceHistory(c *gin.Context)
+}
+
+' Services represented in project
+class JWTService {
+  - secret: string
+  + GenerateToken(lecturerID int, nip string)
+}
+
+class FaceRecognitionService {
+  + EuclideanDistance(desc1 []float32, desc2 []float32)
+}
+
+class DatabaseConnection {
+  - DB: *sql.DB
+  + Connect()
+  + Query(query string, args ...interface{})
+  + Exec(query string, args ...interface{})
+}
+
+' Actor interactions
+LecturerActor --> AuthHandler : login
+LecturerActor --> CourseHandler : manage courses
+LecturerActor --> SessionHandler : manage sessions
+LecturerActor --> AttendanceHandler : export attendance
+LecturerActor --> HistoryHandler : view history
+
+StudentActor --> AuthHandler : login (optional)
+StudentActor --> StudentHandler : register face
+StudentActor --> CourseHandler : search/enroll
+StudentActor --> AttendanceHandler : face authentication
+
+' Data relationships with cardinalities
+Lecturer "1" -- "0..*" Course : owns
+Lecturer "1" -- "0..*" AttendanceSession : opens
+Course "1" -- "0..*" CourseStudent : links
+Student "1" -- "0..*" CourseStudent : enrolled in
+Course "1" -- "0..*" AttendanceSession : has sessions
+AttendanceSession "1" -- "0..*" Attendance : records
+Student "1" -- "0..*" Attendance : attends
+
+' Handler connections to services and database
+AuthHandler --> JWTService : uses
+AttendanceHandler --> FaceRecognitionService : uses
+AuthHandler --> DatabaseConnection : uses
+StudentHandler --> DatabaseConnection : uses
+CourseHandler --> DatabaseConnection : uses
+SessionHandler --> DatabaseConnection : uses
+AttendanceHandler --> DatabaseConnection : uses
+HistoryHandler --> DatabaseConnection : uses
+
+@enduml

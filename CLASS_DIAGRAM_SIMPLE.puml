@@ -1,0 +1,123 @@
+@startuml Attendance System - Simple Class Diagram
+
+' Actors
+actor Lecturer as lecturer
+actor Student as student
+
+' Core entities with visibility ("-" private, "+" public for methods)
+class Lecturer {
+  - id: int <<PK>>
+  - nip: string <<UK>>
+  - name: string
+  - password_hash: string
+}
+
+class Course {
+  - id: int <<PK>>
+  - course_code: string <<UK>>
+  - course_name: string
+  - lecturer_id: int <<FK>>
+}
+
+class Student {
+  - id: int <<PK>>
+  - nim: string <<UK>>
+  - name: string
+  - program: string
+  - face_descriptor: JSONB
+  - photo_path: string
+}
+
+class CourseStudent {
+  - course_id: int <<FK>>
+  - student_id: int <<FK>>
+}
+
+class AttendanceSession {
+  - id: int <<PK>>
+  - course_id: int <<FK>>
+  - lecturer_id: int <<FK>>
+  - session_name: string
+  - details: string
+  - opened_at: timestamp
+  - status: string
+}
+
+class Attendance {
+  - id: int <<PK>>
+  - session_id: int <<FK>>
+  - student_id: int <<FK>>
+  - confidence: float64
+  - status: string
+}
+
+' Handlers (showing public methods)
+class AuthHandler {
+  + Login(req: LoginRequest): Token
+}
+class StudentHandler {
+  + RegisterStudent(req: RegisterRequest): Result
+  + GetAllStudents(): []Student
+}
+class CourseHandler {
+  + CreateCourse(req: CreateCourseRequest): Course
+  + EnrollStudent(req: EnrollRequest): Result
+  + GetCourses(lecturerID int): []Course
+}
+class SessionHandler {
+  + StartSession(req: StartSessionRequest): AttendanceSession
+  + CloseSession(sessionID int): Result
+}
+class AttendanceHandler {
+  + AuthenticateFace(req: AuthenticateRequest): AttendanceResult
+  + ExportAttendanceCSV(courseID int): CSV
+}
+
+' Services
+class JWTService {
+  - secret: string
+  + GenerateToken(lecturerID int, nip string): string
+  + ValidateToken(token string): bool
+}
+class FaceRecognitionService {
+  + EuclideanDistance(a []float32, b []float32): float64
+  + MatchFace(descriptor []float32, threshold float64): Student
+}
+
+' DTOs (brief)
+class LoginRequest
+class RegisterRequest
+class CreateCourseRequest
+class EnrollRequest
+class StartSessionRequest
+class AuthenticateRequest
+
+' Actor interactions -> handlers
+lecturer --> AuthHandler : login
+lecturer --> CourseHandler : create/manage courses
+lecturer --> SessionHandler : start/close sessions
+lecturer --> AttendanceHandler : export report
+
+student --> StudentHandler : register face
+student --> CourseHandler : search/enroll
+student --> AttendanceHandler : scan face for attendance
+
+' Data relationships (cardinalities)
+Lecturer "1" -- "0..*" Course : creates
+Course "1" -- "0..*" CourseStudent : has
+Student "1" -- "0..*" CourseStudent : enrolls
+Course "1" -- "0..*" AttendanceSession : has
+AttendanceSession "1" -- "0..*" Attendance : records
+Student "1" -- "0..*" Attendance : has
+
+' Notes for clarity
+note right of AuthHandler
+  Handler = API endpoint layer
+  Receives requests from actors
+end note
+
+note right of JWTService
+  Business logic for tokens
+end note
+
+@enduml

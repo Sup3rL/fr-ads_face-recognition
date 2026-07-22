@@ -20,7 +20,7 @@
                 <h3 style="color: var(--primary); margin-top: 0;">1. Select Past Session</h3>
                 <!-- The CSV Export Button -->
                 <div style="display: flex; gap: 10px;">
-                    <button id="deleteSessionBtn" class="btn-danger" style="width: auto; padding: 10px;">🗑️ Delete Session</button>
+                    <button id="deleteSessionBtn" class="btn-danger" style="width: auto; padding: 10px;">Delete Session</button>
                     <!-- <button id="exportBtn" class="btn" style="width: auto; padding: 10px;">📥 Export to CSV</button> -->
                 </div>
             </div>
@@ -31,7 +31,12 @@
             
             <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
             
-            <h3 style="color: var(--primary);">2. Roster & Manual Override</h3>
+            <h3 style="color: var(--primary);">Session Details</h3>
+            <div class="register-form" style="max-width: 100%; padding: 15px; background-color: #f9f9f9; border-radius: 6px; margin-bottom: 20px;">
+                <p id="sessionDetailsDisplay" style="margin: 0;">-</p>
+            </div>
+            
+            <h3 style="color: var(--primary);">Student Attendance</h3>
             <div class="table-container" style="margin-top: 0; box-shadow: none; border: 1px solid #eee;">
                 <table>
                     <thead>
@@ -39,11 +44,10 @@
                             <th>NIM</th>
                             <th>Name</th>
                             <th>Status</th>
-                            <th style="text-align: right;">Manual Override</th>
                         </tr>
                     </thead>
                     <tbody id="attendanceTableBody">
-                        <tr><td colspan="4" style="text-align:center;">Please select a session first.</td></tr>
+                        <tr><td colspan="3" style="text-align:center;">Please select a session first.</td></tr>
                     </tbody>
                 </table>
             </div>

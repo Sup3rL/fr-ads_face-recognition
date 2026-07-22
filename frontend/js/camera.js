@@ -14,6 +14,11 @@ if (!currentCourseId) {
     window.location.href = '/app/dashboard.html';
 }
 
+// --- END SESSION BUTTON ---
+document.getElementById('endSessionBtn').addEventListener('click', () => {
+    window.location.href = `/app/class-details.html?course_id=${currentCourseId}`;
+});
+
 const token = localStorage.getItem('token');
 if (!token) window.location.href = '/app/login.html';
 
@@ -111,9 +116,13 @@ video.addEventListener('play', async () => {
                 const data = await response.json();
 
                 if (data.status === "PRESENT") {
-                    statusText.innerHTML = `✅ ${data.name}`;
+                    statusText.innerHTML = `✅ ${data.name} Recorded`;
                     statusText.style.color = "var(--success)";
                     setTimeout(() => { isProcessing = false; }, 3000);
+                } else if (data.status === "UNKNOWN") {
+                    statusText.innerHTML = `⚠️ Unknown Person`;
+                    statusText.style.color = "var(--danger)";
+                    setTimeout(() => { isProcessing = false; }, 1500);
                 } else {
                     statusText.innerHTML = `✅ ${data.name} ${data.status}`;
                     statusText.style.color = "var(--success)";

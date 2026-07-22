@@ -46,7 +46,7 @@ func AuthenticateFace(c *gin.Context) {
 	var bestMatchID int
 	// We set the initial "lowest distance" to our threshold of 0.45.
 	// If no face scores lower than this, it remains a stranger.
-	lowestDistance := 0.45
+	lowestDistance := 0.30
 	foundMatch := false
 
 	// 2. Loop through every student to find the closest match

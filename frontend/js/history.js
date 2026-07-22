@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         sessionSelect.innerHTML = '<option value="">-- Select a Session --</option>';
         sessions.forEach(session => {
             const date = new Date(session.opened_at).toLocaleString();
-            sessionSelect.innerHTML += `<option value="${session.id}">${session.session_name} (${date})</option>`;
+            sessionSelect.innerHTML += `<option value="${session.id}" data-name="${session.session_name}" data-details="${session.details}">${session.session_name} (${date})</option>`;
         });
     } catch (e) { console.error(e); }
 
@@ -42,17 +42,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         roster.forEach(student => {
             const att = attendances.find(a => a.student_id === student.id);
             const status = att ? att.status : 'ABSENT';
+            const displayStatus = status === 'IZIN' ? 'LEAVE' : status;
+            const statusClass = status === 'PRESENT' ? 'status-present' : status === 'IZIN' ? 'status-leave' : 'status-absent';
 
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${student.nim}</td>
                 <td>${student.name}</td>
-                <td>${status}</td>
                 <td style="text-align: right;">
-                    <select class="override-dropdown" data-sid="${student.id}" data-sessionid="${sessionId}">
-                        <option value="PRESENT" ${status === 'PRESENT' ? 'selected' : ''}>PRESENT (P)</option>
-                        <option value="IZIN" ${status === 'IZIN' ? 'selected' : ''}>IZIN (I)</option>
-                        <option value="ABSENT" ${status === 'ABSENT' ? 'selected' : ''}>ABSENT (A)</option>
+                    <select class="override-dropdown ${statusClass}" data-sid="${student.id}" data-sessionid="${sessionId}">
+                        <option value="PRESENT" ${status === 'PRESENT' ? 'selected' : ''} class="option-present">PRESENT (P)</option>
+                        <option value="IZIN" ${status === 'IZIN' ? 'selected' : ''} class="option-leave">LEAVE (L)</option>
+                        <option value="ABSENT" ${status === 'ABSENT' ? 'selected' : ''} class="option-absent">ABSENT (A)</option>
                     </select>
                 </td>
             `;
@@ -87,7 +88,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 5. Handle Session Change
     sessionSelect.addEventListener('change', async (e) => {
         const sessionId = e.target.value;
-        if (!sessionId) return;
+        if (!sessionId) {
+            document.getElementById('sessionDetailsDisplay').textContent = '-';
+            document.getElementById('sessionDetailsDisplay').style.opacity = '0.5';
+            tableBody.innerHTML = '<tr><td colspan="3" style="text-align:center;">Please select a session first.</td></tr>';
+            return;
+        }
+        
+        // Display session details
+        const selectedOption = e.target.selectedOptions[0];
+        const sessionDetails = selectedOption.getAttribute('data-details');
+        
+        const detailsElement = document.getElementById('sessionDetailsDisplay');
+        if (sessionDetails && sessionDetails.trim()) {
+            detailsElement.textContent = sessionDetails;
+            detailsElement.style.opacity = '1';
+        } else {
+            detailsElement.textContent = 'No detail';
+            detailsElement.style.opacity = '0.5';
+        }
+        
         const attRes = await fetch(`/api/sessions/attendance?session_id=${sessionId}`);
         const attendances = await attRes.json();
         renderTable(sessionId, attendances);

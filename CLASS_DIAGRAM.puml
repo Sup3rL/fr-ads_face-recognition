@@ -1,0 +1,179 @@
+@startuml Attendance System - Class Diagram
+
+skinparam class {
+    BackgroundColor #E1F5FE
+    BorderColor #01579B
+    ArrowColor #01579B
+}
+
+class LecturerActor <<Actor>> {
+}
+class StudentActor <<Actor>> {
+}
+
+' ====================
+' DATABASE ENTITIES
+' ====================
+class Lecturer {
+    - id: int <<PK>>
+    - nip: string <<UK>>
+    - name: string
+    - password_hash: string
+}
+
+class Course {
+    - id: int <<PK>>
+    - course_code: string <<UK>>
+    - course_name: string
+    - lecturer_id: int <<FK>>
+}
+
+class Student {
+    - id: int <<PK>>
+    - nim: string <<UK>>
+    - name: string
+    - program: string
+    - face_descriptor: JSONB
+    - photo_path: string
+}
+
+class CourseStudent {
+    - course_id: int <<FK>>
+    - student_id: int <<FK>>
+}
+
+class AttendanceSession {
+    - id: int <<PK>>
+    - course_id: int <<FK>>
+    - lecturer_id: int <<FK>>
+    - session_name: string
+    - details: string
+    - opened_at: timestamp
+    - status: string
+}
+
+class Attendance {
+    - id: int <<PK>>
+    - session_id: int <<FK>>
+    - student_id: int <<FK>>
+    - confidence: float64
+    - status: string
+}
+
+' ====================
+' HANDLERS (API Endpoints)
+' ====================
+class AuthHandler {
+    + Login(c *gin.Context): void
+}
+
+class StudentHandler {
+    + RegisterStudent(c *gin.Context): void
+    + GetAllStudents(c *gin.Context): void
+}
+
+class CourseHandler {
+    + GetCourses(c *gin.Context): void
+    + SearchStudent(c *gin.Context): void
+    + EnrollStudent(c *gin.Context): void
+    + CreateCourse(c *gin.Context): void
+    + GetEnrolledStudents(c *gin.Context): void
+}
+
+class SessionHandler {
+    + StartSession(c *gin.Context): void
+    + GetClassSessions(c *gin.Context): void
+    + OverrideAttendance(c *gin.Context): void
+    + CloseSession(c *gin.Context): void
+}
+
+class AttendanceHandler {
+    + AuthenticateFace(c *gin.Context): void
+    + ExportAttendanceCSV(c *gin.Context): void
+}
+
+' ====================
+' SERVICES (Business Logic)
+' ====================
+class JWTService {
+    - secret: string
+    + GenerateToken(lecturerID int, nip string): string
+    + ValidateToken(token string): bool
+}
+
+class FaceRecognitionService {
+    + EuclideanDistance(desc1 []float32, desc2 []float32): float64
+    + MatchFace(descriptor []float32, threshold float64): Student
+}
+
+class DatabaseConnection {
+    - DB: *sql.DB
+    + Connect(): void
+    + Query(query string, args ...interface{}): *sql.Rows
+    + Exec(query string, args ...interface{}): sql.Result
+}
+
+' ====================
+' REQUEST/RESPONSE DTOs
+' ====================
+class LoginRequest {
+    + NIP: string
+    + Password: string
+}
+
+class RegisterRequest {
+    + NIM: string
+    + Name: string
+    + Program: string
+    + FaceDescriptor: []float32
+    + PhotoBase64: string
+}
+
+class AuthenticateRequest {
+    + SessionID: int
+    + CourseID: int
+    + FaceDescriptor: []float32
+}
+
+' ====================
+' ACTOR INTERACTIONS
+' ====================
+
+LecturerActor --> AuthHandler: login
+LecturerActor --> CourseHandler: manage courses
+LecturerActor --> SessionHandler: manage sessions
+LecturerActor --> AttendanceHandler: export attendance
+
+StudentActor --> AuthHandler: login (optional)
+StudentActor --> StudentHandler: register face
+StudentActor --> CourseHandler: search & enroll
+StudentActor --> AttendanceHandler: authenticate face
+
+' ====================
+' DATA RELATIONSHIPS
+' ====================
+
+Lecturer "1" -- "*" Course: creates
+Lecturer "1" -- "*" AttendanceSession: manages
+
+Course "1" -- "*" CourseStudent: has students
+Student "1" -- "*" CourseStudent: enrolls in
+
+Course "1" -- "*" AttendanceSession: has sessions
+
+AttendanceSession "1" -- "*" Attendance: records
+
+Student "1" -- "*" Attendance: has attendance
+
+' ====================
+' HANDLER to SERVICE RELATIONSHIPS
+' ====================
+AuthHandler --> JWTService: uses
+AttendanceHandler --> FaceRecognitionService: uses
+AuthHandler --> DatabaseConnection: uses
+StudentHandler --> DatabaseConnection: uses
+CourseHandler --> DatabaseConnection: uses
+SessionHandler --> DatabaseConnection: uses
+AttendanceHandler --> DatabaseConnection: uses
+
+@enduml
